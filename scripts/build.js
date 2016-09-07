@@ -132,7 +132,11 @@ function build(options) {
       process.exit(1);
     }
 
-    var args = [require.resolve(path.join('node-gyp', 'bin', 'node-gyp.js')), 'rebuild', '--verbose'].concat(
+    var electronargs = options.electron !== undefined ?
+      ['--target='+options.electron, '--dist-url=https://atom.io/download/atom-shell'] : [];
+
+    var args = [require.resolve(path.join('node-gyp', 'bin', 'node-gyp.js')), 'rebuild', '--verbose']
+      .concat(electronargs).concat(
       ['libsass_ext', 'libsass_cflags', 'libsass_ldflags', 'libsass_library'].map(function(subject) {
         return ['--', subject, '=', process.env[subject.toUpperCase()] || ''].join('');
       })).concat(options.args);
@@ -179,6 +183,9 @@ function parseArgs(args) {
       options.debug = true;
     } else if (arg.substring(0, 13) === '--libsass_ext' && arg.substring(14) !== 'no') {
       options.libsassExt = true;
+    } else if (arg.startsWith('--electron=')) {
+      options.electron = arg.substring('--electron='.length);
+      return false;
     }
 
     return true;
